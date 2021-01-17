@@ -23,7 +23,7 @@ tab_chronicles.upsert(
         "iso3166_2": "DE-HE",
         "chronicler_name": "response.",
         "chronicler_description": "response. ist die erste Beratungsstelle für Betroffene rechter Gewalt in Hessen und in der Bildungsstätte Anne Frank in Frankfurt angesiedelt.",
-        "chronicler_url": "https://response-hessen.de/chronik",
+        "chronicler_url": "https://response-hessen.de",
         "chronicle_source": "https://response-hessen.de/chronik",
     },
     ["chronicler_name"],
