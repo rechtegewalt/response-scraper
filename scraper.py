@@ -1,14 +1,11 @@
 import re
-from typing import SupportsRound
+import datetime
 
 import dataset
 import get_retries
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 from dateparser import parse
 
-from hashlib import md5
-
-from tqdm import tqdm
 
 db = dataset.connect("sqlite:///data.sqlite")
 
@@ -94,8 +91,8 @@ def process_report(report, url, **kwargs):
     data = {**data, **kwargs}
 
     # don't override the correct url when filtering
-    if('county' in kwargs or 'motives' in kwargs):
-        del data['url']
+    if "county" in kwargs or "motives" in kwargs:
+        del data["url"]
 
     tab_incidents.upsert(data, ["rg_id"])
 
@@ -156,3 +153,70 @@ for label, l_id in motiv_filters:
         print(next_link)
         if next_link is None:
             break
+
+
+# for 2020+ use https://hessenschauthin.de/chronik/
+
+title_to_id = {}
+
+
+def hsh_process_report(report):
+    rg_id = "hsh-" + report.select_one(".elementor").get("data-elementor-id")
+    date = report.select_one(".elementor-post-date").get_text().strip()
+    date = parse(date, languages=["de"])
+
+    if date < datetime.datetime(2020, 1, 2):
+        return
+    print(date)
+
+    city_title = report.select_one("h3.elementor-heading-title").get_text().strip()
+    title_to_id[city_title] = rg_id
+    if ":" in city_title:
+        city, title = city_title.split(":")
+        city = city.strip()
+        title = title.strip()
+    else:
+        city, title = None, city_title
+
+    description = ""
+    sources = []
+    text_list = report.select(".elementor-text-editor p")
+    for x in text_list:
+        fulltext = x.get_text().strip()
+        if fulltext.startswith("Quelle"):
+            for child in x.contents:
+                if isinstance(child, NavigableString):
+                    url = None
+                    text = str(child).strip()
+                else:
+                    url = child.get("href")
+                    text = child.get_text().strip()
+                if len(text) == 0 or text.startswith("Quelle"):
+                    continue
+                elif url is None:
+                    sources.append({"name": text})
+                else:
+                    sources.append({"url": url, "name": text})
+        else:
+            description += fulltext
+
+    data = dict(
+        chronicler_name="response.",
+        title=title,
+        description=description,
+        city=city,
+        date=date,
+        rg_id=rg_id,
+        url="https://hessenschauthin.de/chronik/",
+    )
+    # TODO: get county + motives
+    tab_incidents.upsert(data, ["rg_id"])
+
+    for s in sources:
+        tab_sources.upsert(s, ["rg_id", "name", "url"])
+
+
+hsh_soup = fetch("https://hessenschauthin.de/chronik/")
+
+for x in hsh_soup.select("article.elementor-post"):
+    hsh_process_report(x)
