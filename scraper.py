@@ -93,6 +93,10 @@ def process_report(report, url, **kwargs):
 
     data = {**data, **kwargs}
 
+    # don't override the correct url when filtering
+    if('county' in kwargs or 'motives' in kwargs):
+        del data['url']
+
     tab_incidents.upsert(data, ["rg_id"])
 
     for s in sources:
