@@ -2,7 +2,8 @@
 
 Scraping right-wing incidents in Hesse (_Hessen_), Germany as monitored by the NGO [response.](https://response-hessen.de).
 
--   Website: <https://response-hessen.de/chronik>
+-   Website until 2020: <https://response-hessen.de/chronik>
+-   Website from 2020: <https://hessenschauthin.de/chronik/>
 -   Data: <https://morph.io/rechtegewalt/response-scraper>
 
 ## Usage
