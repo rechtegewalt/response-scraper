@@ -172,7 +172,7 @@ def hsh_process_report(report):
     city_title = report.select_one("h3.elementor-heading-title").get_text().strip()
     title_to_id[city_title] = rg_id
     if ":" in city_title:
-        city, title = city_title.split(":")
+        city, title = city_title.split(":", 1)
         city = city.strip()
         title = title.strip()
     else:
